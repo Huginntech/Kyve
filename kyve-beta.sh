@@ -106,7 +106,7 @@ create_validator () {
     fi
     echo -e "\033[0m"
     source $HOME/.bash_profile
-    wget -q -O dms.sh https://api.testnet.run/dms.sh && chmod +x dms.sh && sudo /bin/bash dms.sh
+    wget -q -O dms.sh https://api.testnet.run/dms.sh && chmod +x dms.sh
     sleep 2
     sudo screen -dmS validator ./dms.sh
 }
