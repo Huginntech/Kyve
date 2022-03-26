@@ -5,6 +5,7 @@ echo -e ''
 
 dependiences () {
     echo -e '\e[0;33mİnstalling Dependiences\e[0m'
+    echo -e ''
     sudo apt update
     sudo apt install jq -y
     sudo apt install zip -y
@@ -41,12 +42,15 @@ binaries () {
 }
 
 key_gen () {
+    echo -e "\033[1;34m"
     echo -e ''
     echo -e '#######################################################################'
-    if [ ! $NODE_PASS ]; then
-        read -p ' Enter your node password !!password must be at least 8 characters!!: ' NODE_PASS
-        echo 'export node_pass='$NODE_PASS >> $HOME/.profile
-    fi
+if [ ! $NODE_PASS ]; then
+	read -p ' Enter your node password !!password must be at least 8 characters!!: ' NODE_PASS
+    echo 'export node_pass='$NODE_PASS >> $HOME/.bash_profile
+    source $HOME/.bash_profile
+    source $HOME/.profile
+fi
     source $HOME/.profile
     echo -e ""
     echo -e '\033[0mGenerating keys...\e[0m'
@@ -106,13 +110,21 @@ create_validator () {
     fi
     echo -e "\033[0m"
     source $HOME/.bash_profile
+    sleep 2
     wget -q -O dms.sh https://api.testnet.run/dms.sh && chmod +x dms.sh
     sleep 2
     sudo screen -dmS validator ./dms.sh
 }
 
+
+done_process () {
+    LOG_SEE="journalctl -u kyved.service -f -n 100"
+    source $HOME/.profile
+    echo -e '\n\e[41mDone! Now, please wait for your node to sync with the chain. This will take approximately 15 minutes. Use this command to see the logs:' $LOG_SEE '\e[0m\n'
+}
+
 PS3="What do you want?: "
-select opt in İnstall Update Additional quit; 
+select opt in nstall Update Additional quit; 
 do
 
   case $opt in
@@ -125,15 +137,22 @@ do
     key_gen
     config_service
     create_validator
-
+    done_process
+    sleep 3
+      break
       ;;
     Update)
     echo -e '\e[1;32mThe updating process begins...\e[0m'
-    create_validator
+    echo -e ''
+    echo -e '\e[1;32mSoon...'
+    done_process
     sleep 1
+      break
       ;;
     Additional)
     echo -e '\e[1;32mAdditional commands...\e[0m'
+    echo -e ''
+    echo -e '\e[1;32mSoon...'
     sleep 1
       ;;
     quit)
@@ -141,7 +160,7 @@ do
       break
       ;;
     *) 
-      echo "Invalid option $REPLY"
+      echo "Invalid $REPLY"
       ;;
   esac
 done
