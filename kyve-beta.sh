@@ -30,8 +30,8 @@ binaries () {
     . $HOME/.bash_profile
     echo -e "\033[0m"
     mkdir kyvebinary && cd kyvebinary
-    wget https://nc.breithecker.de/index.php/s/L8QoGPY5cJ2ze4T/download/kyve_beta-2022-03-23.zip
-    unzip kyve_beta-2022-03-23.zip
+    wget https://nc.breithecker.de/index.php/s/wKMRSZy3goxnaHT/download/kyve_beta-2022-03-30.zip
+    unzip kyve_beta-2022-03-30
     tar -xvf  chain_linux_amd64.tar.gz
     sudo mv chaind kyved
     sudo mv kyved /usr/bin/
@@ -124,7 +124,7 @@ done_process () {
 }
 
 PS3="What do you want?: "
-select opt in nstall Update Additional quit; 
+select opt in İnstall Update Additional quit; 
 do
 
   case $opt in
