@@ -1,4 +1,8 @@
 #!/bin/bash
+echo -e ''
+curl -s https://api.testnet.run/logo.sh | bash && sleep 3
+echo -e ''
+
 dependient () {
     sudo apt update
     sudo apt install zip -y
