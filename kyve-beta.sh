@@ -1,23 +1,60 @@
 #!/bin/bash
-echo -e ''
-curl -s https://api.testnet.run/logo.sh | bash && sleep 3
-echo -e ''
-
 dependient () {
     sudo apt update
     sudo apt install zip -y
+    sudo apt install screen -y
     sudo apt install make clang pkg-config libssl-dev build-essential git jq ncdu nload -y < "/dev/null"
     echo -e ''
-    echo -e "Go..."
-    wget -O go1.17.1.linux-amd64.tar.gz https://golang.org/dl/go1.17.linux-amd64.tar.gz
-    rm -rf /usr/local/go && tar -C /usr/local -xzf go1.17.1.linux-amd64.tar.gz && rm go1.17.1.linux-amd64.tar.gz
-    echo 'export GOROOT=/usr/local/go' >> $HOME/.bash_profile
-    echo 'export GOPATH=$HOME/go' >> $HOME/.bash_profile
-    echo 'export GO111MODULE=on' >> $HOME/.bash_profile
-    echo 'export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin' >> $HOME/.bash_profile
+    echo -e "\033[1;34m"
+    if [ ! $node_name ]; then
+        read -p ' Enter your node name: ' node_name
+        echo 'export node_name='$node_name >> $HOME/.bash_profile
+    fi
     . $HOME/.bash_profile
-    go version
+    echo -e "\033[0m"
+    echo -e "\e[0;33mGo...\e[0m" && sleep 2
+	wget -O go1.17.1.linux-amd64.tar.gz https://golang.org/dl/go1.17.linux-amd64.tar.gz
+	rm -rf /usr/local/go && tar -C /usr/local -xzf go1.17.1.linux-amd64.tar.gz && rm go1.17.1.linux-amd64.tar.gz
+	echo 'export GOROOT=/usr/local/go' >> $HOME/.bash_profile
+	echo 'export GOPATH=$HOME/go' >> $HOME/.bash_profile
+	echo 'export GO111MODULE=on' >> $HOME/.bash_profile
+	echo 'export PATH=$PATH:/usr/local/go/bin:$HOME/go/bin' >> $HOME/.bash_profile
+    . $HOME/.bash_profile
+	go version
 }
+
+variables (){
+    echo export CHAIN_ID=kyve-beta >> $HOME/.profile
+    echo export denom=tkyve >> $HOME/.profile
+    source $HOME/.profile
+}
+
+key_gen () {
+    echo -e "\033[1;34m"
+    echo -e ''
+    echo -e '#######################################################################'
+if [ ! $NODE_PASS ]; then
+	read -p ' Enter your node password !!password must be at least 8 characters!!: ' NODE_PASS
+    echo 'export node_pass='$NODE_PASS >> $HOME/.bash_profile
+    source $HOME/.bash_profile
+    source $HOME/.profile
+fi
+    source $HOME/.profile
+    echo -e ""
+    echo -e '\033[0mGenerating keys...\e[0m'
+    sleep 2
+    echo -e ''
+    echo -e "\e[33mWait...\e[0m" && sleep 4
+    (echo $NODE_PASS; echo $NODE_PASS) | kyved keys add validator --output json &>> $HOME/"$CHAIN_ID"_validator_info.json
+    echo -e "You can find your mnemonic with the following command;"
+    echo -e "\e[32mcat $HOME/kyve-beta_validator_info.json\e[39m"
+    export KYVE_WALLET=`echo $NODE_PASS | kyved keys show validator -a`
+    echo 'export KYVE_WALLET='${KYVE_WALLET} >> $HOME/.bash_profile
+    . $HOME/.bash_profile
+    echo -e '\n\e[44mHere is the your wallet address, save it!:' $KYVE_WALLET '\e[0m\n'
+}
+
+
 
 select_dist () {
     source $HOME/.profile && sleep 2
@@ -62,6 +99,7 @@ create_bin () {
     sed -i.bak 's/seeds = \"\"/seeds = \"'$(cat $HOME/.kyve/config/seeds.txt)'\"/g' $HOME/.kyve/config/config.toml
 }
 
+
 services () {
 sudo tee /etc/systemd/system/kyved.service > /dev/null <<EOF  
 [Unit]
@@ -85,7 +123,36 @@ EOF
 sudo -S systemctl daemon-reload
 sudo -S systemctl enable kyved
 sudo -S systemctl start kyved
-systemctl status kyved
+sed -i 's/#Storage=auto/Storage=persistent/g' /etc/systemd/journald.conf
+sudo systemctl restart systemd-journald
+}
+
+create_validator () {
+    if [ ! $faucet ]; then
+        echo -e '\e[44mGo to Discord and in the \e[42mfaucet\e[0m channel use this command: \e[42m!faucet send' $KYVE_WALLET '\e[0m'
+        echo -e "\033[1;34m"
+        read -p 'Then press any key: '
+        echo -e "\033[0m"
+    fi
+        echo -e "\033[1;34m"
+    if [ ! $amount ]; then
+        read -p ' Tell me, what is the amount you want to stake?
+        remember, 1 KYVE=1000000000 : ' amount
+        echo 'export amount='$amount >> $HOME/.bash_profile
+    fi
+    echo -e "\033[0m"
+    source $HOME/.bash_profile
+    sleep 2
+    wget -q -O dms.sh https://api.testnet.run/dms.sh && chmod +x dms.sh
+    sleep 2
+    sudo screen -dmS validator ./dms.sh
+}
+
+
+done_process () {
+    LOG_SEE="journalctl -u kyved.service -f -n 100"
+    source $HOME/.profile
+    echo -e '\n\e[41mDone! Now, please wait for your node to sync with the chain. This will take approximately 1h. Use this command to see the logs:' $LOG_SEE '\e[0m\n'
 }
 
 PS3="What do you want?: "
@@ -101,9 +168,13 @@ case $opt in
     sleep 1
     #select_dist
     dependient
+    variables
+    key_gen
     cosmovisor
     create_bin
     services
+    create_validator
+    done_process
     sleep 3
       break
       ;;
