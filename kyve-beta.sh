@@ -29,33 +29,6 @@ variables (){
     source $HOME/.profile
 }
 
-key_gen () {
-    echo -e "\033[1;34m"
-    echo -e ''
-    echo -e '#######################################################################'
-if [ ! $NODE_PASS ]; then
-	read -p ' Enter your node password !!password must be at least 8 characters!!: ' NODE_PASS
-    echo 'export node_pass='$NODE_PASS >> $HOME/.bash_profile
-    source $HOME/.bash_profile
-    source $HOME/.profile
-fi
-    source $HOME/.profile
-    echo -e ""
-    echo -e '\033[0mGenerating keys...\e[0m'
-    sleep 2
-    echo -e ''
-    echo -e "\e[33mWait...\e[0m" && sleep 4
-    (echo $NODE_PASS; echo $NODE_PASS) | kyved keys add validator --output json &>> $HOME/"$CHAIN_ID"_validator_info.json
-    echo -e "You can find your mnemonic with the following command;"
-    echo -e "\e[32mcat $HOME/kyve-beta_validator_info.json\e[39m"
-    export KYVE_WALLET=`echo $NODE_PASS | kyved keys show validator -a`
-    echo 'export KYVE_WALLET='${KYVE_WALLET} >> $HOME/.bash_profile
-    . $HOME/.bash_profile
-    echo -e '\n\e[44mHere is the your wallet address, save it!:' $KYVE_WALLET '\e[0m\n'
-}
-
-
-
 select_dist () {
     source $HOME/.profile && sleep 2
     VAR=$(cat $HOME/distro.txt)
@@ -99,6 +72,31 @@ create_bin () {
     sed -i.bak 's/seeds = \"\"/seeds = \"'$(cat $HOME/.kyve/config/seeds.txt)'\"/g' $HOME/.kyve/config/config.toml
 }
 
+
+key_gen () {
+    echo -e "\033[1;34m"
+    echo -e ''
+    echo -e '#######################################################################'
+if [ ! $NODE_PASS ]; then
+	read -p ' Enter your node password !!password must be at least 8 characters!!: ' NODE_PASS
+    echo 'export node_pass='$NODE_PASS >> $HOME/.bash_profile
+    source $HOME/.bash_profile
+    source $HOME/.profile
+fi
+    source $HOME/.profile
+    echo -e ""
+    echo -e '\033[0mGenerating keys...\e[0m'
+    sleep 2
+    echo -e ''
+    echo -e "\e[33mWait...\e[0m" && sleep 4
+    (echo $NODE_PASS; echo $NODE_PASS) | kyved keys add validator --output json &>> $HOME/"$CHAIN_ID"_validator_info.json
+    echo -e "You can find your mnemonic with the following command;"
+    echo -e "\e[32mcat $HOME/kyve-beta_validator_info.json\e[39m"
+    export KYVE_WALLET=`echo $NODE_PASS | kyved keys show validator -a`
+    echo 'export KYVE_WALLET='${KYVE_WALLET} >> $HOME/.bash_profile
+    . $HOME/.bash_profile
+    echo -e '\n\e[44mHere is the your wallet address, save it!:' $KYVE_WALLET '\e[0m\n'
+}
 
 services () {
 sudo tee /etc/systemd/system/kyved.service > /dev/null <<EOF  
@@ -169,8 +167,8 @@ case $opt in
     #select_dist
     dependient
     variables
-    key_gen
     cosmovisor
+    key_gen
     create_bin
     services
     create_validator
