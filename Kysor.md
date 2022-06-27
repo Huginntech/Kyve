@@ -201,5 +201,26 @@ sed -i 's/#Storage=auto/Storage=persistent/g' /etc/systemd/journald.conf
 sudo systemctl restart systemd-journald
 sudo systemctl daemon-reload
 sudo systemctl enable kysord
-sudo systemctl restart kysord
+sudo systemctl start kysord
+```
+
+
+### Additional Commands
+
+Check Logs
+
+```
+journalctl -u kysord -fo cat
+```
+
+Stop the Kysor
+
+```
+systemctl stop kysord
+```
+
+Restart Kysor
+
+```
+systemctl restart kysord
 ```
