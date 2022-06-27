@@ -1,1 +1,2 @@
 # Kyve
+napak yani kardeş?
